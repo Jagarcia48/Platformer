@@ -12,6 +12,7 @@ public class LevelManager {
     private String level;
     int mapWidth;
     int mapHeight;
+
     Player player;
     int playerIndex;
 
@@ -20,7 +21,7 @@ public class LevelManager {
 
     LevelData levelData;
     ArrayList<GameObject> gameObjects;
-    //ArrayList<Background> backgrounds;
+    ArrayList<Background> backgrounds;
     ArrayList<Rect> currentButtons;
 
     Bitmap[] bitmapsArray;
@@ -33,7 +34,7 @@ public class LevelManager {
             case "LevelCave":
                 levelData = new LevelCave();
                 break;
-           /*
+
             case "LevelCity":
                 levelData = new LevelCity();
                 break;
@@ -44,7 +45,7 @@ public class LevelManager {
 
             case "LevelMountain":
                 levelData = new LevelMountain();
-                break;*/
+                break;
         }
 
         // To hold all our GameObjects
@@ -62,7 +63,7 @@ public class LevelManager {
 
         //playing = true;
     }
-   /* private void loadBackgrounds(Context context, int pixelsPerMetre, int screenWidth) {
+    private void loadBackgrounds(Context context, int pixelsPerMetre, int screenWidth) {
         backgrounds = new ArrayList<Background>();
         //load the background data into the Background objects and
         // place them in our GameObject arraylist
@@ -70,35 +71,35 @@ public class LevelManager {
             backgrounds.add(new Background(context, pixelsPerMetre, screenWidth, bgData));
         }
 
-    }*/
-   
+    }
+
     public void setWaypoints() {
         for (GameObject guard: gameObjects) {
             if (guard.getType() == 'g') {
+
                 int feetTileIndex = -1; // index of the tile beneath the guard
                 float leftEnd = -1, rightEnd = -1;  // left and right ends of the calculated route
+
                 for (GameObject tile: gameObjects) {
                     feetTileIndex++;
-                    if (tile.getWorldLocation().y == guard.getWorldLocation().y + 2
-                            &&  tile.getWorldLocation().x == guard.getWorldLocation().x) {
+                    if (tile.getWorldLocation().y == guard.getWorldLocation().y + 2 &&  tile.getWorldLocation().x == guard.getWorldLocation().x) {
                         leftEnd = gameObjects.get(feetTileIndex - 5).getWorldLocation().x;
                         for (int i = 1; i <= 5; i++) {
                             GameObject left = gameObjects.get(feetTileIndex - i);
-                            if (left.getWorldLocation().x != guard.getWorldLocation().x - i
-                                    || left.getWorldLocation().y != guard.getWorldLocation().y + 2
-                                    || !left.isTraversable()) {
+                            if (left.getWorldLocation().x != guard.getWorldLocation().x - i || left.getWorldLocation().y != guard.getWorldLocation().y + 2 || !left.isTraversable()) {
                                 leftEnd = gameObjects.get(feetTileIndex - (i - 1)).getWorldLocation().x;
-                                break; } }
+                                break;
+                            }
+                        }
 
                         rightEnd = gameObjects.get(feetTileIndex + 5).getWorldLocation().x;
                         for (int i = 1; i <= 5; i++) {
                             GameObject right = gameObjects.get(feetTileIndex + i);
-                            if (right.getWorldLocation().x != guard.getWorldLocation().x + i
-                                    || right.getWorldLocation().y != guard.getWorldLocation().y + 2
-                                    || !right.isTraversable()) {
+                            if (right.getWorldLocation().x != guard.getWorldLocation().x + i || right.getWorldLocation().y != guard.getWorldLocation().y + 2 || !right.isTraversable()) {
                                 rightEnd = gameObjects.get(feetTileIndex + (i - 1)).getWorldLocation().x;
-                                break; } }
-
+                                break;
+                            }
+                        }
                         ((Guard) guard).setWaypoints(leftEnd, rightEnd);
                     }
                 }
@@ -208,6 +209,7 @@ public class LevelManager {
 
     private void loadMapData(Context context, int pixelsPerMeter, float px, float py) {
         int currentIndex = -1;
+        char c;
 
         mapHeight = levelData.tiles.size();
         mapWidth = levelData.tiles.get(0).length();
@@ -215,7 +217,7 @@ public class LevelManager {
         for (int i = 0; i < levelData.tiles.size(); i++) {
             for (int j = 0; j < levelData.tiles.get(i).length(); j++) {
 
-                char c = levelData.tiles.get(i).charAt(j);
+                c = levelData.tiles.get(i).charAt(j);
                 if (c != '.') {
                     currentIndex++;
                     switch (c) {

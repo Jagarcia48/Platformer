@@ -17,8 +17,6 @@ public class PlayerState {
     }
 
     public void saveLocation(PointF location) {
-        // The location saves each time the player uses a teleport
-        // But as this is a rogue-like if the player quits or dies then they need to start again
         restartX = location.x;
         restartY = location.y;
     }

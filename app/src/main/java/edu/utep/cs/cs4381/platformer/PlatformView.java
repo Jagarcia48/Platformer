@@ -58,6 +58,11 @@ public class PlatformView extends SurfaceView implements Runnable {
         ic = new InputController(vp.getScreenWidth(), vp.getScreenHeight());
 
         PointF location = new PointF(px, py);
+
+        ps.saveLocation(location);
+
+        lm.player.bfg.setFireRate(ps.getFireRate());
+
         vp.setWorldCenter(lm.gameObjects.get(lm.playerIndex).getWorldLocation().x, lm.gameObjects.get(lm.playerIndex).getWorldLocation().y);
     }
 
@@ -132,6 +137,14 @@ public class PlatformView extends SurfaceView implements Runnable {
                                 lm.player.setWorldLocationY(location.y);
                                 lm.player.setxVelocity(0);
                                 break;
+                            case 'f':
+                                soundManager.play(SoundManager.Sound.EXPLODE);
+                                ps.loseLife();
+                                location = new PointF(ps.loadLocation().x, ps.loadLocation().y);
+                                lm.player.setWorldLocationX(location.x);
+                                lm.player.setWorldLocationY(location.y);
+                                lm.player.setxVelocity(0);
+                                break;
                             default:
                                 if (hit == 1) { // left or right
                                     lm.player.setxVelocity(0);
@@ -143,6 +156,36 @@ public class PlatformView extends SurfaceView implements Runnable {
                                 break;
                         }
                     }
+
+                    for (int i = 0; i < lm.player.bfg.getNumBullets(); i++) {
+                        //Make a hitbox out of the the current bullet
+                        RectHitbox r = new RectHitbox();
+                        r.setLeft(lm.player.bfg.getBulletX(i));
+                        r.setTop(lm.player.bfg.getBulletY(i));
+                        r.setRight(lm.player.bfg.getBulletX(i) + .1f);
+                        r.setBottom(lm.player.bfg.getBulletY(i) + .1f);
+
+                        if (go.getRectHitbox().intersects(r)) {
+                             lm.player.bfg.hideBullet(i);
+
+                            if (go.getType() != 'g'
+                                    && go.getType() != 'd') {
+                                soundManager.play(SoundManager.Sound.RICOCHET);
+                            } else if (go.getType() == 'g') {
+                                // Knock the guard back
+                                go.setWorldLocationX(go.getWorldLocation().x + 2 * (lm.player.bfg.getDirection(i)));
+                                soundManager.play(SoundManager.Sound.HIT_GUARD);
+                            } else if (go.getType() == 'd') {
+                                //destroy the droid
+                                soundManager.play(SoundManager.Sound.EXPLODE);
+                                //permanently clip this drone
+                                go.setWorldLocation(-100, -100, 0);
+                            }
+
+
+                        }
+                    }
+
                     if (lm.isPlaying()) {
                         go.update(fps, lm.gravity);
                         if (go.getType() == 'd') {
@@ -178,7 +221,58 @@ public class PlatformView extends SurfaceView implements Runnable {
                 ps = new PlayerState();
                 loadLevel("LevelCave", 1, 16);
             }
+        }
+    }
 
+    private void drawBackground(int start, int stop) {
+
+        Rect fromRect1 = new Rect();
+        Rect toRect1 = new Rect();
+        Rect fromRect2 = new Rect();
+        Rect toRect2 = new Rect();
+
+        for (Background bg : lm.backgrounds) {
+
+            if (bg.z < start && bg.z > stop) {
+                // Is this layer in the viewport?
+                // Clip anything off-screen
+                if (!vp.clipObject(-1, bg.y,1000, bg.height)) {
+
+                    float floatstartY = ((vp.getyCentre() - ((vp.getViewportWorldCentreY() - bg.y) * vp.getPixelsPerMetreY())));
+                    int startY = (int) floatstartY;
+
+                    float floatendY = ((vp.getyCentre() - ((vp.getViewportWorldCentreY() - bg.endY) * vp.getPixelsPerMetreY())));
+                    int endY = (int) floatendY;
+
+                    //define what portion of bitmaps to capture and what coordinates to draw them at
+                    fromRect1 = new Rect(0, 0, bg.width - bg.xClip, bg.height);
+                    toRect1 = new Rect(bg.xClip, startY, bg.width, endY);
+
+                    fromRect2 = new Rect(bg.width - bg.xClip, 0, bg.width, bg.height);
+                    toRect2 = new Rect(0, startY, bg.xClip, endY);
+                }
+
+                //draw backgrounds
+                if (!bg.reversedFirst) {
+
+                    canvas.drawBitmap(bg.bitmap, fromRect1, toRect1, paint);
+                    canvas.drawBitmap(bg.bitmapReversed, fromRect2, toRect2, paint);
+                } else {
+                    canvas.drawBitmap(bg.bitmap, fromRect2, toRect2, paint);
+                    canvas.drawBitmap(bg.bitmapReversed, fromRect1, toRect1, paint);
+                }
+
+
+                bg.xClip -= lm.player.getxVelocity() / (20 / bg.speed);
+                if (bg.xClip >= bg.width) {
+                    bg.xClip = 0;
+                    bg.reversedFirst = !bg.reversedFirst;
+                } else if (bg.xClip <= 0) {
+                    bg.xClip = bg.width;
+                    bg.reversedFirst = !bg.reversedFirst;
+
+                }
+            }
         }
     }
 
@@ -217,23 +311,16 @@ public class PlatformView extends SurfaceView implements Runnable {
                                             toScreen2d, paint);
                                 }
                             } else { // Just draw the whole bitmap
-                                canvas.drawBitmap(
-                                        lm.bitmapsArray[lm.getBitmapIndex(go.getType())],
-                                        toScreen2d.left,
-                                        toScreen2d.top, paint);
+                                canvas.drawBitmap(lm.bitmapsArray[lm.getBitmapIndex(go.getType())], toScreen2d.left, toScreen2d.top, paint);
                             }
-                           /* canvas.drawBitmap(lm.bitmapsArray[lm.getBitmapIndex(go.getType())],
-                                    toScreen2d.left, toScreen2d.top, paint);*/
+                           // canvas.drawBitmap(lm.bitmapsArray[lm.getBitmapIndex(go.getType())], toScreen2d.left, toScreen2d.top, paint);*/
                         }
                     }
                 }
                 //draw the bullets
                 paint.setColor(Color.argb(255, 255, 255, 255));
                 for (int i = 0; i < lm.player.bfg.getNumBullets(); i++) {
-                // Pass in the x and y coords as usual
-                // then .25 and .05 for the bullet width and height
-                    toScreen2d.set(vp.worldToScreen(lm.player.bfg.getBulletX(i), lm.player.bfg.getBulletY(i), .25f, .05f));
-                    canvas.drawRect(toScreen2d, paint);
+                  toScreen2d.set(vp.worldToScreen(lm.player.bfg.getBulletX(i), lm.player.bfg.getBulletY(i), .25f, .05f));canvas.drawRect(toScreen2d, paint);
                 }
 
                 if(debugging){
@@ -245,6 +332,31 @@ public class PlatformView extends SurfaceView implements Runnable {
                     canvas.drawText("X velocity:" + lm.gameObjects.get(lm.playerIndex).getxVelocity(), 10, 180, paint);
                     canvas.drawText("Y velocity:" + lm.gameObjects.get(lm.playerIndex).getyVelocity(), 10, 200, paint);
                 }
+
+                drawBackground(4, 0);
+                int topSpace = vp.getPixelsPerMetreY() / 4;
+                int iconSize = vp.getPixelsPerMetreX();
+                int padding = vp.getPixelsPerMetreX() / 5;
+                int centring = vp.getPixelsPerMetreY() / 6;
+                paint.setTextSize(vp.getPixelsPerMetreY()/2);
+                paint.setTextAlign(Paint.Align.CENTER);
+
+                paint.setColor(Color.argb(100, 0, 0, 0));
+                canvas.drawRect(0,0,iconSize * 7.0f, topSpace*2 + iconSize,paint);
+                paint.setColor(Color.argb(255, 255, 255, 0));
+
+                canvas.drawBitmap(lm.getBitmap('e'), 0, topSpace, paint);
+
+                canvas.drawText("" + ps.getLives(), (iconSize * 1) + padding, (iconSize) - centring, paint);
+
+                canvas.drawBitmap(lm.getBitmap('c'), (iconSize * 2.5f) + padding, topSpace, paint);
+
+                canvas.drawText("" + ps.getCredits(), (iconSize * 3.5f) + padding * 2, (iconSize) - centring, paint);
+
+                canvas.drawBitmap(lm.getBitmap('u'), (iconSize * 5.0f) + padding, topSpace, paint);
+
+                canvas.drawText("" + ps.getFireRate(), (iconSize * 6.0f) + padding * 2, (iconSize) - centring, paint);
+
 
                 // draw buttons
                 paint.setColor(Color.argb(80, 255, 255, 255));
@@ -273,14 +385,6 @@ public class PlatformView extends SurfaceView implements Runnable {
             ic.handleInput(motionEvent, lm, soundManager, vp);
         }
         return true;
-        /*
-
-        switch (motionEvent.getActionMasked()){
-            case MotionEvent.ACTION_DOWN:
-                lm.switchPlayingStatus();
-                break;
-        }
-        return true;*/
     }
 
 

@@ -21,8 +21,7 @@ public class Animation {
         this.frameCount = frameCount;
         this.frameWidth = (int)frameWidth * pixelsPerMetre;
         this.frameHeight = (int)frameHeight * pixelsPerMetre;
-        sourceRect = new Rect(0, 0, this.frameWidth,
-                this.frameHeight);
+        sourceRect = new Rect(0, 0, this.frameWidth, this.frameHeight);
         framePeriod = 1000 / animFps;
         frameTicker = 0l;
         this.bitmapName = "" + bitmapName;
@@ -50,10 +49,5 @@ public class Animation {
         this.sourceRect.right = this.sourceRect.left + frameWidth;
         return sourceRect;
     }
-
-
-
-
-
 
 }

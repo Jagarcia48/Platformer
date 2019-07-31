@@ -141,20 +141,18 @@ public class InputController {
 
                     case MotionEvent.ACTION_DOWN:
                         if (right.contains(x, y)) {
-                           // vp.moveViewportRight(l.mapWidth);
-                            //Log.w("right:", "DOWN" );
+                            vp.moveViewportRight(l.mapWidth);
+
                         } else if (left.contains(x, y)) {
-                            //vp.moveViewportLeft();
-                            //Log.w("left:", "DOWN" );
+                            vp.moveViewportLeft();
+
                         } else if (jump.contains(x, y)) {
-                           // vp.moveViewportUp();
-                            //Log.w("jump:", "DOWN" );/
+                            vp.moveViewportUp();
+
                         } else if (shoot.contains(x, y)) {
-                           // vp.moveViewportDown(l.mapHeight);
-                            //Log.w("shoot:", "DOWN" );/
+                            vp.moveViewportDown(l.mapHeight);
                         } else if (pause.contains(x, y)) {
                             l.switchPlayingStatus();
-                            //Log.w("pause:", "DOWN" );
                         }
 
                         break;

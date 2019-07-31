@@ -27,6 +27,17 @@ public class Viewport {
         convertedRect = new Rect();
         currentViewportWorldCentre = new Vector2Point5D();
     }
+    public int getPixelsPerMetreY(){
+        return  pixelsPerMetreY;
+    }
+
+    public int getyCentre(){
+        return screenCentreY;
+    }
+
+    public float getViewportWorldCentreY(){
+        return currentViewportWorldCentre.y;
+    }
 
     void setWorldCenter(float x, float y){
         currentViewportWorldCentre.x = x;
@@ -40,6 +51,31 @@ public class Viewport {
     }
     public int getPixelsPerMetreX(){
         return pixelsPerMetreX;
+    }
+    public void moveViewportRight(int maxWidth){
+        if(currentViewportWorldCentre.x < maxWidth - (metresToShowX/2)+3) {
+
+            currentViewportWorldCentre.x += 1;
+        }
+    }
+
+    public void moveViewportLeft(){
+        if(currentViewportWorldCentre.x > (metresToShowX/2)-3){
+
+            currentViewportWorldCentre.x -= 1;
+        }
+    }
+
+    public void moveViewportUp(){
+        if(currentViewportWorldCentre.y > (metresToShowY /2)-3) {
+            currentViewportWorldCentre.y -= 1;
+        }
+    }
+
+    public void moveViewportDown(int maxHeight){
+        if(currentViewportWorldCentre.y < maxHeight - (metresToShowY / 2)+3) {
+            currentViewportWorldCentre.y += 1;
+        }
     }
 
     public Rect worldToScreen(float objectX, float objectY, float objectWidth, float objectHeight){
